@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 import lang.app.llearning.R
 import lang.app.llearning.data.model.Story
 import lang.app.llearning.ui.theme.AppTheme
+import lang.app.llearning.viewmodel.TextToSpeechUiState
 import lang.app.llearning.viewmodel.TextToSpeechViewModel
 
 
@@ -207,66 +208,109 @@ fun StoryRenderer(modifier: Modifier = Modifier,uiState:StoryUiState) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun StorySection(modifier: Modifier = Modifier,story: Story,textToSpeechViewModel : TextToSpeechViewModel){
-    val(englishStory,translatedStory) = story
-    var englishStorySplitted = splitStoryIntoSentences(englishStory)
-    var translatedStorySplitted = splitStoryIntoSentences(translatedStory)
+fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewModel: TextToSpeechViewModel) {
+    val (englishStory, translatedStory) = story
+    val englishStorySplitted = splitStoryIntoSentences(englishStory)
+    val translatedStorySplitted = splitStoryIntoSentences(translatedStory)
     var highlightedIndex by remember { mutableStateOf<Int?>(null) }
-    val coroutineScope = rememberCoroutineScope();
+    val coroutineScope = rememberCoroutineScope()
+
+    // Track the sentence being fetched
+    var currentlyFetchingSentenceIndex by remember { mutableStateOf<Int?>(null) }
+
     Column(modifier = modifier
         .verticalScroll(rememberScrollState())
         .padding(10.dp)) {
+
+        // English story sentences
         englishStorySplitted.forEachIndexed { index, sentence ->
-            Text(
-                text = sentence,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = modifier
-                    .combinedClickable(
-                        onClick = {
-                            highlightedIndex = index
-                        },
-                        onLongClick = {
-                            coroutineScope.launch {
-                                textToSpeechViewModel.fetchAudio(sentence)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = sentence,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = modifier
+                        .combinedClickable(
+                            onClick = {
+                                highlightedIndex = index
+                            },
+                            onLongClick = {
+                                // Start fetching the audio for this sentence
+                                currentlyFetchingSentenceIndex = index
+                                coroutineScope.launch {
+                                    textToSpeechViewModel.fetchAudio(sentence)
+                                }
                             }
-                        }
-                    )
+                        )
+                        .background(
+                            if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
+                            else MaterialTheme.colorScheme.onSecondary
+                        )
+                        .padding(8.dp)
+                        .align(Alignment.CenterStart)
+                )
 
-                    .background(
-                        if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
-                        else MaterialTheme.colorScheme.onSecondary
+                // Show loading spinner if audio is being fetched for this sentence
+                if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 8.dp),
+                        color = MaterialTheme.colorScheme.primary
                     )
-
-            )
+                }
+            }
         }
+
+        // Divider between English and Translated sections
         HorizontalDivider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             thickness = 2.dp,
             modifier = modifier.padding(vertical = 1.dp)
         )
+
+        // Translated story sentences
         translatedStorySplitted.forEachIndexed { index, sentence ->
-            Text(
-                text = sentence,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = modifier
-                    .combinedClickable(
-                        onClick = {
-                            highlightedIndex = index
-                        },
-                        onLongClick = {
-                            coroutineScope.launch {
-                                textToSpeechViewModel.fetchAudio(sentence)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = sentence,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = modifier
+                        .combinedClickable(
+                            onClick = {
+                                highlightedIndex = index
+                            },
+                            onLongClick = {
+                                // Start fetching the audio for this sentence
+                                currentlyFetchingSentenceIndex = index
+                                coroutineScope.launch {
+                                    textToSpeechViewModel.fetchAudio(sentence)
+                                }
                             }
-                        }
+                        )
+                        .background(
+                            if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
+                            else MaterialTheme.colorScheme.onSecondary
+                        )
+                        .padding(8.dp)
+                        .align(Alignment.CenterStart)
+                )
+
+                // Show loading spinner if audio is being fetched for this sentence
+                if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 8.dp),
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    .background(
-                        if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
-                        else MaterialTheme.colorScheme.onSecondary
-                    )
-            )
+                }
+            }
         }
     }
 }
+
 
 
 
