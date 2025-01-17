@@ -21,14 +21,14 @@ sealed interface TextToSpeechUiState {
 class TextToSpeechViewModel : ViewModel() {
     var ttsUiState: TextToSpeechUiState by mutableStateOf(TextToSpeechUiState.Initial)
 
-    fun synthesizeSpeech(text: String) {
+    fun fetchAudio(text: String) {
         viewModelScope.launch {
             ttsUiState = TextToSpeechUiState.Loading
             try {
                 val ttsApi = TextToSpeechApi.getInstance()
                 val request = TextToSpeechRequest(text)
-                val response: TextToSpeechResponse = ttsApi.synthesizeSpeech(request)
-                ttsUiState = TextToSpeechUiState.Success(response.audioContent)
+                val response: TextToSpeechResponse = ttsApi.fetchAudio(request)
+                ttsUiState = TextToSpeechUiState.Success(response.url)
             } catch (e: Exception) {
                 Log.d("ERROR", e.message.toString())
                 ttsUiState = TextToSpeechUiState.Error

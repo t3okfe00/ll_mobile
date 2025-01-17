@@ -1,11 +1,13 @@
 package lang.app.llearning.data.model
 
+import android.util.Log
+import lang.app.llearning.BuildConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-const val BASE_URL = "http://192.168.1.110:3000/"
+const val BASE_URL = BuildConfig.BASE_URL
 data class Success(val story: Story)
 
 data class Story(
@@ -23,6 +25,8 @@ interface  StoryApi {
     companion object {
         var storyService: StoryApi? = null
         fun getInstance(): StoryApi {
+            Log.d("StroyApi", "Base URL: $BASE_URL")
+
             if (storyService === null) {
                 storyService = Retrofit.Builder()
                     .baseUrl(BASE_URL)

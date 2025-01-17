@@ -2,9 +2,11 @@ package lang.app.llearning.ui.screens
 import StoryUiState
 import StoryViewModel
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,10 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import lang.app.llearning.R
 import lang.app.llearning.data.model.Story
 import lang.app.llearning.ui.theme.AppTheme
-
+import lang.app.llearning.viewmodel.TextToSpeechViewModel
 
 
 @Composable
@@ -194,18 +198,21 @@ fun StoryRenderer(modifier: Modifier = Modifier,uiState:StoryUiState) {
 
     when(uiState){
         is StoryUiState.Loading -> LoadingScreen(modifier)
-        is StoryUiState.Success -> StorySection(modifier,uiState.story)
+        is StoryUiState.Success -> StorySection(modifier,uiState.story, textToSpeechViewModel = viewModel())
         is StoryUiState.Error -> ErrorScreen(modifier)
         else -> {}
     }
 
 }
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun StorySection(modifier: Modifier = Modifier,story: Story){
+fun StorySection(modifier: Modifier = Modifier,story: Story,textToSpeechViewModel : TextToSpeechViewModel){
     val(englishStory,translatedStory) = story
     var englishStorySplitted = splitStoryIntoSentences(englishStory)
     var translatedStorySplitted = splitStoryIntoSentences(translatedStory)
     var highlightedIndex by remember { mutableStateOf<Int?>(null) }
+    val coroutineScope = rememberCoroutineScope();
     Column(modifier = modifier
         .verticalScroll(rememberScrollState())
         .padding(10.dp)) {
@@ -214,9 +221,17 @@ fun StorySection(modifier: Modifier = Modifier,story: Story){
                 text = sentence,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = modifier
-                    .clickable {
-                        highlightedIndex = index
-                    }
+                    .combinedClickable(
+                        onClick = {
+                            highlightedIndex = index
+                        },
+                        onLongClick = {
+                            coroutineScope.launch {
+                                textToSpeechViewModel.fetchAudio(sentence)
+                            }
+                        }
+                    )
+
                     .background(
                         if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
                         else MaterialTheme.colorScheme.onSecondary
@@ -234,9 +249,16 @@ fun StorySection(modifier: Modifier = Modifier,story: Story){
                 text = sentence,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = modifier
-                    .clickable {
-                        highlightedIndex = index
-                    }
+                    .combinedClickable(
+                        onClick = {
+                            highlightedIndex = index
+                        },
+                        onLongClick = {
+                            coroutineScope.launch {
+                                textToSpeechViewModel.fetchAudio(sentence)
+                            }
+                        }
+                    )
                     .background(
                         if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
                         else MaterialTheme.colorScheme.onSecondary
