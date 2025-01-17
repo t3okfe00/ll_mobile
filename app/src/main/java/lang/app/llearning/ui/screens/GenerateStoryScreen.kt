@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -214,8 +215,8 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
     val translatedStorySplitted = splitStoryIntoSentences(translatedStory)
     var highlightedIndex by remember { mutableStateOf<Int?>(null) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Track the sentence being fetched
     var currentlyFetchingSentenceIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(modifier = modifier
@@ -234,10 +235,9 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
                                 highlightedIndex = index
                             },
                             onLongClick = {
-                                // Start fetching the audio for this sentence
                                 currentlyFetchingSentenceIndex = index
                                 coroutineScope.launch {
-                                    textToSpeechViewModel.fetchAudio(sentence)
+                                    textToSpeechViewModel.fetchAndPlayAudio(sentence, context)
                                 }
                             }
                         )
@@ -245,11 +245,9 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
                             if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
                             else MaterialTheme.colorScheme.onSecondary
                         )
-                        .padding(8.dp)
                         .align(Alignment.CenterStart)
                 )
 
-                // Show loading spinner if audio is being fetched for this sentence
                 if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier
@@ -262,14 +260,12 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
             }
         }
 
-        // Divider between English and Translated sections
         HorizontalDivider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             thickness = 2.dp,
             modifier = modifier.padding(vertical = 1.dp)
         )
 
-        // Translated story sentences
         translatedStorySplitted.forEachIndexed { index, sentence ->
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -281,10 +277,9 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
                                 highlightedIndex = index
                             },
                             onLongClick = {
-                                // Start fetching the audio for this sentence
                                 currentlyFetchingSentenceIndex = index
                                 coroutineScope.launch {
-                                    textToSpeechViewModel.fetchAudio(sentence)
+                                    textToSpeechViewModel.fetchAndPlayAudio(sentence,context)
                                 }
                             }
                         )
@@ -292,11 +287,9 @@ fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewMo
                             if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
                             else MaterialTheme.colorScheme.onSecondary
                         )
-                        .padding(8.dp)
                         .align(Alignment.CenterStart)
                 )
 
-                // Show loading spinner if audio is being fetched for this sentence
                 if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier

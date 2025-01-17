@@ -11,6 +11,7 @@ import retrofit2.http.POST
 const val BASE_URL_TTS = BuildConfig.BASE_URL
 
 
+
 data class TextToSpeechRequest(
     val text: String
 )
