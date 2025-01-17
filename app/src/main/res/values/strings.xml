@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">LLearning</string>
+    <string name="user_prompt_label">I want a story about ...</string>
+    <string name="user_prompt_placeholder">Type here ...</string>
+    <string name="generate_story_screen_heading">Generate a story</string>
+    <string name="wand_icon">Wizard wand</string>
+    <string name="loading_screen_text">Loading...</string>
+    <string name="error_screen_text">Error retrieving data from API.</string>
+</resources>
