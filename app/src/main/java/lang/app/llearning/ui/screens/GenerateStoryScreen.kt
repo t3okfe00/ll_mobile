@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -59,8 +61,9 @@ import lang.app.llearning.viewmodel.TextToSpeechViewModel
 @Composable
 fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifier,storyViewModel: StoryViewModel = viewModel()){
     var uiState = storyViewModel.storyUiState
-    var selectedLanguage by remember { mutableStateOf("Select a Language") }
-    Log.d("Selected Language",selectedLanguage)
+    var generatedStory = storyViewModel.story
+    var selectedLanguage by rememberSaveable { mutableStateOf(storyViewModel.selectedLanguage) }
+
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -68,14 +71,16 @@ fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifi
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier.padding(horizontal = 8.dp)
         ){
             Text(
                 text = stringResource(R.string.generate_story_screen_heading),
                 modifier = modifier,
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.bodyMedium,
             )
             LanguageDropdown(
+                storyViewModel = storyViewModel,
                 modifier = Modifier.align(Alignment.CenterVertically),
                 selectedLanguage = selectedLanguage,
                 onLanguageSelected = { selectedLanguage = it }
@@ -83,13 +88,31 @@ fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifi
         }
 
         PromptInputSection(storyViewModel,modifier,selectedLanguage)
-        StoryRenderer(modifier, uiState )
+        StoryRenderer(modifier, uiState, generatedStory)
     }
+}
+
+@Composable
+fun StoryRenderer(modifier: Modifier = Modifier,uiState:StoryUiState,story:Story?) {
+
+    when(uiState){
+        is StoryUiState.Loading -> LoadingScreen(modifier)
+        is StoryUiState.Success -> {
+            if (story != null) {
+                StorySection(modifier, story = story, textToSpeechViewModel = viewModel())
+            } else {
+                ErrorScreen(modifier)
+            }
+        }
+        is StoryUiState.Error -> ErrorScreen(modifier)
+        else -> {}
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageDropdown(modifier: Modifier = Modifier,
+fun LanguageDropdown(storyViewModel: StoryViewModel,modifier: Modifier = Modifier,
                      selectedLanguage:String,
                      onLanguageSelected:(String) ->Unit) {
     var expanded by remember { mutableStateOf(false) }
@@ -105,12 +128,13 @@ fun LanguageDropdown(modifier: Modifier = Modifier,
                 value = selectedLanguage,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Language") },
+                label = { Text(selectedLanguage) },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(35.dp)
                     .menuAnchor() // Ensures the dropdown is correctly anchored to the TextField
             )
             ExposedDropdownMenu(
@@ -122,6 +146,7 @@ fun LanguageDropdown(modifier: Modifier = Modifier,
                         text = { Text(text = language) },
                         onClick = {
                             onLanguageSelected(language)
+                            storyViewModel.updateLanguage(language)
                             expanded = false
                         }
                     )
@@ -134,14 +159,16 @@ fun LanguageDropdown(modifier: Modifier = Modifier,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromptInputSection(storyViewModel: StoryViewModel,modifier: Modifier,selectedLanguage: String){
-    var userInput by rememberSaveable { mutableStateOf("") }
+    var userInput by rememberSaveable { mutableStateOf(storyViewModel.userPrompt) }
+    val keyboardController = LocalSoftwareKeyboardController.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(12.dp)
     ) {
         TextField(
             value = userInput,
-            onValueChange = {userInput = it},
+            onValueChange = {userInput = it
+                            storyViewModel.updatePrompt(it)},
 
             label = {Text(stringResource(R.string.user_prompt_label))},
             placeholder = { Text(stringResource(R.string.user_prompt_placeholder)) },
@@ -151,16 +178,20 @@ fun PromptInputSection(storyViewModel: StoryViewModel,modifier: Modifier,selecte
                 .weight(1f)
         )
         Spacer(modifier = modifier.width(6.dp))
-        PromptSubmitButton(modifier,storyViewModel,userInput,selectedLanguage)
+        PromptSubmitButton(modifier,storyViewModel,userInput,selectedLanguage,{keyboardController?.hide()})
     }
-
+3
 
 }
 
 
 
 @Composable
-fun PromptSubmitButton(modifier: Modifier=Modifier,storyViewModel: StoryViewModel,userInput:String,selectedLanguage: String){
+fun PromptSubmitButton(modifier: Modifier=Modifier,
+                       storyViewModel: StoryViewModel,
+                       userInput:String,
+                       selectedLanguage: String,
+                       onSubmit:()->Unit){
     val uiState = storyViewModel.storyUiState
     Box {
         if(uiState is StoryUiState.Loading){
@@ -171,7 +202,9 @@ fun PromptSubmitButton(modifier: Modifier=Modifier,storyViewModel: StoryViewMode
         }
         else{
         IconButton(
-            onClick = { storyViewModel.createStory(userInput, selectedLanguage) }
+            onClick = {
+                storyViewModel.createStory(userInput, selectedLanguage)
+                onSubmit()},
         ) {
             Icon(
                 painter = painterResource(R.drawable.wizard),
@@ -195,17 +228,7 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
     Text(stringResource(R.string.error_screen_text))
 }
 
-@Composable
-fun StoryRenderer(modifier: Modifier = Modifier,uiState:StoryUiState) {
 
-    when(uiState){
-        is StoryUiState.Loading -> LoadingScreen(modifier)
-        is StoryUiState.Success -> StorySection(modifier,uiState.story, textToSpeechViewModel = viewModel())
-        is StoryUiState.Error -> ErrorScreen(modifier)
-        else -> {}
-    }
-
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

@@ -1,10 +1,12 @@
 package lang.app.llearning.ui
 
+import StoryViewModel
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -41,12 +43,13 @@ import lang.app.llearning.ui.theme.AppTheme
 
 
 class MainActivity : ComponentActivity() {
+    private val storyViewModel: StoryViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                MainScreen(modifier = Modifier)
+                MainScreen(modifier = Modifier,storyViewModel = storyViewModel)
             }
         }
     }
@@ -55,7 +58,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(modifier:Modifier = Modifier,
-               windowSizeClass : WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+               windowSizeClass : WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+               storyViewModel: StoryViewModel
 ) {
     val widthSizeClass = windowSizeClass.windowWidthSizeClass
     Log.v("WindowSizeClass", "Size Class: $widthSizeClass")
@@ -106,17 +110,10 @@ fun MainScreen(modifier:Modifier = Modifier,
                 ProfileScreen(navController, modifier,"Efe",{},{})
             }
             composable(route = "story"){
-                GenerateStoryScreen(navController,modifier)
+                GenerateStoryScreen(navController,modifier, storyViewModel = storyViewModel)
             }
         }
 
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun AppNavigationPreview() {
-    AppTheme {
-        MainScreen()
-    }
-}
