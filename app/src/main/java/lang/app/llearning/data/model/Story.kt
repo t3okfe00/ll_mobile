@@ -18,6 +18,7 @@ data class Story(
 
 
 interface  StoryApi {
+
     @POST("story")
     suspend fun createStory(@Body requestBody: StoryRequest) : Story
 

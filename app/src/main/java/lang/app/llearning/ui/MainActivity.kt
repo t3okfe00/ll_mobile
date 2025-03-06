@@ -1,6 +1,6 @@
 package lang.app.llearning.ui
 
-import StoryViewModel
+import lang.app.llearning.viewmodel.StoryViewModel
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,7 +34,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import lang.app.llearning.R
 
-import lang.app.llearning.ui.screens.GenerateStoryScreen
+import lang.app.llearning.ui.screens.generateStory.GenerateStoryScreen
 import lang.app.llearning.ui.screens.HomeScreen
 import lang.app.llearning.ui.screens.ProfileScreen
 import lang.app.llearning.ui.screens.TopBar
@@ -69,7 +68,6 @@ fun MainScreen(modifier:Modifier = Modifier,
         "home" to R.drawable.home,
         "profile" to R.drawable.profile,
         "story" to R.drawable.books
-
     )
 
     Scaffold(

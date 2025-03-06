@@ -76,6 +76,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.adaptive.android)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.play.services.identity.credentials)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit.junit)
     testImplementation(libs.junit.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -85,6 +88,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("androidx.credentials:credentials:1.5.0-rc01")
+    implementation ("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
+
+
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+
 
 
 }

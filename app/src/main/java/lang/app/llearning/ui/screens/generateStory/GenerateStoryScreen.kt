@@ -1,13 +1,14 @@
-package lang.app.llearning.ui.screens
-import StoryUiState
-import StoryViewModel
-import android.util.Log
+package lang.app.llearning.ui.screens.generateStory
+import ErrorScreen
+
+import lang.app.llearning.viewmodel.StoryUiState
+import lang.app.llearning.viewmodel.StoryViewModel
 import androidx.compose.foundation.ExperimentalFoundationApi
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,9 +29,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,12 +51,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import lang.app.llearning.R
 import lang.app.llearning.data.model.Story
+import lang.app.llearning.ui.screens.LoadingScreen
 import lang.app.llearning.ui.theme.AppTheme
 import lang.app.llearning.viewmodel.TextToSpeechUiState
 import lang.app.llearning.viewmodel.TextToSpeechViewModel
@@ -60,9 +66,9 @@ import lang.app.llearning.viewmodel.TextToSpeechViewModel
 
 @Composable
 fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifier,storyViewModel: StoryViewModel = viewModel()){
-    var uiState = storyViewModel.storyUiState
-    var generatedStory = storyViewModel.story
-    var selectedLanguage by rememberSaveable { mutableStateOf(storyViewModel.selectedLanguage) }
+    val uiState = storyViewModel.storyUiState
+    val generatedStory = storyViewModel.story
+    var selectedLanguage =storyViewModel.selectedLanguage
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -93,26 +99,42 @@ fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifi
 }
 
 @Composable
-fun StoryRenderer(modifier: Modifier = Modifier,uiState:StoryUiState,story:Story?) {
+fun StoryRenderer(modifier: Modifier = Modifier, uiState: StoryUiState, story:Story?) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    if (uiState is StoryUiState.Error) {
+        LaunchedEffect(uiState) {
+            scope.launch {
+                snackbarHostState.showSnackbar(uiState.message)
+            }
+        }
+    }
 
     when(uiState){
         is StoryUiState.Loading -> LoadingScreen(modifier)
         is StoryUiState.Success -> {
             if (story != null) {
                 StorySection(modifier, story = story, textToSpeechViewModel = viewModel())
-            } else {
-                ErrorScreen(modifier)
             }
         }
-        is StoryUiState.Error -> ErrorScreen(modifier)
-        else -> {}
+        is StoryUiState.Error -> {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = modifier
+            )
+        }
+        else -> {
+        }
     }
 
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageDropdown(storyViewModel: StoryViewModel,modifier: Modifier = Modifier,
+fun LanguageDropdown(storyViewModel: StoryViewModel, modifier: Modifier = Modifier,
                      selectedLanguage:String,
                      onLanguageSelected:(String) ->Unit) {
     var expanded by remember { mutableStateOf(false) }
@@ -158,7 +180,7 @@ fun LanguageDropdown(storyViewModel: StoryViewModel,modifier: Modifier = Modifie
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PromptInputSection(storyViewModel: StoryViewModel,modifier: Modifier,selectedLanguage: String){
+fun PromptInputSection(storyViewModel: StoryViewModel, modifier: Modifier, selectedLanguage: String){
     var userInput by rememberSaveable { mutableStateOf(storyViewModel.userPrompt) }
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
@@ -180,7 +202,7 @@ fun PromptInputSection(storyViewModel: StoryViewModel,modifier: Modifier,selecte
         Spacer(modifier = modifier.width(6.dp))
         PromptSubmitButton(modifier,storyViewModel,userInput,selectedLanguage,{keyboardController?.hide()})
     }
-3
+
 
 }
 
@@ -223,111 +245,125 @@ fun PromptSubmitButton(modifier: Modifier=Modifier,
 
 
 
-@Composable
-fun ErrorScreen(modifier: Modifier = Modifier) {
-    Text(stringResource(R.string.error_screen_text))
-}
-
-
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun StorySection(modifier: Modifier = Modifier, story: Story, textToSpeechViewModel: TextToSpeechViewModel) {
+fun StorySection(
+    modifier: Modifier = Modifier,
+    story: Story,
+    textToSpeechViewModel: TextToSpeechViewModel
+) {
     val (englishStory, translatedStory) = story
     val englishStorySplitted = splitStoryIntoSentences(englishStory)
     val translatedStorySplitted = splitStoryIntoSentences(translatedStory)
     var highlightedIndex by remember { mutableStateOf<Int?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val ttsUiState = textToSpeechViewModel.ttsUiState
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     var currentlyFetchingSentenceIndex by remember { mutableStateOf<Int?>(null) }
 
-    Column(modifier = modifier
-        .verticalScroll(rememberScrollState())
-        .padding(10.dp)) {
+    Box(modifier = modifier.fillMaxSize()) {
+        // Content
+        Column(modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(10.dp)) {
+            // Display Text Content (English and Translated)
+            if (ttsUiState is TextToSpeechUiState.Error) {
+                LaunchedEffect(key1 = ttsUiState) {
+                    snackbarHostState.showSnackbar(ttsUiState.message)
+                }
+            }
 
-        // English story sentences
-        englishStorySplitted.forEachIndexed { index, sentence ->
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = sentence,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = modifier
-                        .combinedClickable(
-                            onClick = {
-                                highlightedIndex = index
-                            },
-                            onLongClick = {
-                                currentlyFetchingSentenceIndex = index
-                                coroutineScope.launch {
-                                    textToSpeechViewModel.fetchAndPlayAudio(sentence, context)
+            // English story sentences
+            englishStorySplitted.forEachIndexed { index, sentence ->
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = sentence,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = modifier
+                            .combinedClickable(
+                                onClick = {
+                                    highlightedIndex = index
+                                },
+                                onLongClick = {
+                                    currentlyFetchingSentenceIndex = index
+                                    coroutineScope.launch {
+                                        textToSpeechViewModel.fetchAndPlayAudio(sentence, context)
+                                    }
                                 }
-                            }
-                        )
-                        .background(
-                            if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
-                            else MaterialTheme.colorScheme.onSecondary
-                        )
-                        .align(Alignment.CenterStart)
-                )
-
-                if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 8.dp),
-                        color = MaterialTheme.colorScheme.primary
+                            )
+                            .background(
+                                if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
+                                else MaterialTheme.colorScheme.onSecondary
+                            )
+                            .align(Alignment.CenterStart)
                     )
+
+                    if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                thickness = 2.dp,
+                modifier = modifier.padding(vertical = 1.dp)
+            )
+
+            // Translated story sentences
+            translatedStorySplitted.forEachIndexed { index, sentence ->
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = sentence,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = modifier
+                            .combinedClickable(
+                                onClick = {
+                                    highlightedIndex = index
+                                },
+                                onLongClick = {
+                                    currentlyFetchingSentenceIndex = index
+                                    coroutineScope.launch {
+                                        textToSpeechViewModel.fetchAndPlayAudio(sentence, context)
+                                    }
+                                }
+                            )
+                            .background(
+                                if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
+                                else MaterialTheme.colorScheme.onSecondary
+                            )
+                            .align(Alignment.CenterStart)
+                    )
+
+                    if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
 
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            thickness = 2.dp,
-            modifier = modifier.padding(vertical = 1.dp)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = modifier
         )
-
-        translatedStorySplitted.forEachIndexed { index, sentence ->
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = sentence,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = modifier
-                        .combinedClickable(
-                            onClick = {
-                                highlightedIndex = index
-                            },
-                            onLongClick = {
-                                currentlyFetchingSentenceIndex = index
-                                coroutineScope.launch {
-                                    textToSpeechViewModel.fetchAndPlayAudio(sentence,context)
-                                }
-                            }
-                        )
-                        .background(
-                            if (highlightedIndex == index) MaterialTheme.colorScheme.inversePrimary
-                            else MaterialTheme.colorScheme.onSecondary
-                        )
-                        .align(Alignment.CenterStart)
-                )
-
-                if (currentlyFetchingSentenceIndex == index && textToSpeechViewModel.ttsUiState is TextToSpeechUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 8.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
     }
 }
-
-
 
 
 fun splitStoryIntoSentences(story:String) : List<String>{

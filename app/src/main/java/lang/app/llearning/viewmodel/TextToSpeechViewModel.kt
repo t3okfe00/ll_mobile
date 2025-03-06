@@ -16,9 +16,9 @@ import lang.app.llearning.data.model.TextToSpeechResponse
 
 sealed interface TextToSpeechUiState {
     data class Success(val audioContent: String) : TextToSpeechUiState
-    object Initial : TextToSpeechUiState
-    object Error : TextToSpeechUiState
-    object Loading : TextToSpeechUiState
+    data object Initial : TextToSpeechUiState
+    data class Error(val message: String) : TextToSpeechUiState
+    data object Loading : TextToSpeechUiState
 }
 
 class TextToSpeechViewModel : ViewModel() {
@@ -54,8 +54,8 @@ class TextToSpeechViewModel : ViewModel() {
 
                 ttsUiState = TextToSpeechUiState.Success(response.url)
             } catch (e: Exception) {
-                Log.e("TTS_ERROR", "Error: ${e.message}", e)
-                ttsUiState = TextToSpeechUiState.Error
+                ttsUiState = TextToSpeechUiState.Error("Text-To-Speech functionality is is temporarily not available"?: "An error occurred")
+
             }
         }
     }
