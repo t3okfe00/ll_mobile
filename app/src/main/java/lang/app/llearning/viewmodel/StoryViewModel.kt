@@ -21,29 +21,21 @@ sealed interface StoryUiState {
 }
 
 
-class StoryViewModel(private val savedStateHandle:SavedStateHandle): ViewModel(){
+class StoryViewModel(): ViewModel(){
     var storyUiState: StoryUiState by mutableStateOf<StoryUiState>(StoryUiState.Initial)
-    private var _story: Story? = null
-    var selectedLanguage by mutableStateOf("Select a Language")
+    var selectedLanguage by mutableStateOf("Turkish")
     var userPrompt by mutableStateOf("")
 
 
-    val story: Story?
-        get() = _story
-    init {
-        storyUiState = StoryUiState.Initial
-        selectedLanguage = savedStateHandle["selectedLanguage"] ?: "Select a Language"
-        userPrompt = savedStateHandle["userPrompt"] ?: ""
-    }
 
     fun updateLanguage(language: String) {
         selectedLanguage = language
-        savedStateHandle["selectedLanguage"] = language  // Save to savedStateHandle
+
     }
 
     fun updatePrompt(prompt: String) {
         userPrompt = prompt
-        savedStateHandle["userPrompt"] = prompt  // Save to savedStateHandle
+
     }
 
     fun createStory(prompt:String,translateTo:String){
@@ -54,7 +46,7 @@ class StoryViewModel(private val savedStateHandle:SavedStateHandle): ViewModel()
                 storiesApi = StoryApi.getInstance()
                 val requestBody = StoryRequest(prompt,translateTo)
                 val generatedStory = storiesApi.createStory(requestBody)
-                _story = generatedStory
+
                 storyUiState = StoryUiState.Success(generatedStory)
             }catch (e: Exception) {
                 val errorMessage = when (e) {

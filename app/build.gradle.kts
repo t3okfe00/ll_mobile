@@ -26,7 +26,9 @@ android {
         versionName = "1.0"
 
         val baseUrl = localProperties.getProperty("BASE_URL") ?: "http://default-url.com"
+        val serverClientId = localProperties.getProperty("SERVER_CLIENT_KEY")
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        buildConfigField("String","SERVER_CLIENT_KEY","\"$serverClientId\"")
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -88,11 +90,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation("androidx.credentials:credentials:1.5.0-rc01")
-    implementation ("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
+    implementation(libs.androidx.credentials)
+    implementation (libs.androidx.credentials.play.services.auth)
 
 
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    implementation(libs.googleid)
 
 
 

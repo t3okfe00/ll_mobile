@@ -1,5 +1,4 @@
 package lang.app.llearning.ui.screens.generateStory
-import ErrorScreen
 
 import lang.app.llearning.viewmodel.StoryUiState
 import lang.app.llearning.viewmodel.StoryViewModel
@@ -51,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -65,9 +63,9 @@ import lang.app.llearning.viewmodel.TextToSpeechViewModel
 
 
 @Composable
-fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifier,storyViewModel: StoryViewModel = viewModel()){
+fun GenerateStoryScreen(modifier: Modifier = Modifier,storyViewModel: StoryViewModel = viewModel()){
     val uiState = storyViewModel.storyUiState
-    val generatedStory = storyViewModel.story
+
     var selectedLanguage =storyViewModel.selectedLanguage
 
     Column(
@@ -94,12 +92,12 @@ fun GenerateStoryScreen(navController: NavController,modifier: Modifier = Modifi
         }
 
         PromptInputSection(storyViewModel,modifier,selectedLanguage)
-        StoryRenderer(modifier, uiState, generatedStory)
+        StoryRenderer(modifier, uiState)
     }
 }
 
 @Composable
-fun StoryRenderer(modifier: Modifier = Modifier, uiState: StoryUiState, story:Story?) {
+fun StoryRenderer(modifier: Modifier = Modifier, uiState: StoryUiState) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -113,11 +111,8 @@ fun StoryRenderer(modifier: Modifier = Modifier, uiState: StoryUiState, story:St
 
     when(uiState){
         is StoryUiState.Loading -> LoadingScreen(modifier)
-        is StoryUiState.Success -> {
-            if (story != null) {
-                StorySection(modifier, story = story, textToSpeechViewModel = viewModel())
-            }
-        }
+        is StoryUiState.Success -> StorySection(modifier, story = uiState.story, textToSpeechViewModel = viewModel())
+
         is StoryUiState.Error -> {
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -127,9 +122,7 @@ fun StoryRenderer(modifier: Modifier = Modifier, uiState: StoryUiState, story:St
         else -> {
         }
     }
-
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -157,7 +150,7 @@ fun LanguageDropdown(storyViewModel: StoryViewModel, modifier: Modifier = Modifi
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(35.dp)
-                    .menuAnchor() // Ensures the dropdown is correctly anchored to the TextField
+                    .menuAnchor()
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -181,7 +174,8 @@ fun LanguageDropdown(storyViewModel: StoryViewModel, modifier: Modifier = Modifi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromptInputSection(storyViewModel: StoryViewModel, modifier: Modifier, selectedLanguage: String){
-    var userInput by rememberSaveable { mutableStateOf(storyViewModel.userPrompt) }
+
+    var userInput = storyViewModel.userPrompt
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -205,8 +199,6 @@ fun PromptInputSection(storyViewModel: StoryViewModel, modifier: Modifier, selec
 
 
 }
-
-
 
 @Composable
 fun PromptSubmitButton(modifier: Modifier=Modifier,
@@ -266,11 +258,11 @@ fun StorySection(
     var currentlyFetchingSentenceIndex by remember { mutableStateOf<Int?>(null) }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Content
+
         Column(modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(10.dp)) {
-            // Display Text Content (English and Translated)
+
             if (ttsUiState is TextToSpeechUiState.Error) {
                 LaunchedEffect(key1 = ttsUiState) {
                     snackbarHostState.showSnackbar(ttsUiState.message)
@@ -372,11 +364,4 @@ fun splitStoryIntoSentences(story:String) : List<String>{
 
 
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun GenerateStoryPreview() {
-    AppTheme {
-        GenerateStoryScreen(navController = rememberNavController())
-    }
-}
 

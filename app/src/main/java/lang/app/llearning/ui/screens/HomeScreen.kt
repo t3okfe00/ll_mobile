@@ -1,6 +1,6 @@
 package lang.app.llearning.ui.screens
 
-
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,16 +16,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.launch
+import lang.app.llearning.BuildConfig
+import lang.app.llearning.viewmodel.AuthViewModel
+
 import java.security.MessageDigest
 import java.util.UUID
 
 @Composable
-fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
+fun HomeScreen(navController: NavController, modifier: Modifier = Modifier,authViewModel: AuthViewModel) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -36,12 +39,12 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             modifier = modifier,
             color = MaterialTheme.colorScheme.primary
         )
-        GoogleSignInButton()
+        GoogleSignInButton(authViewModel = authViewModel)
     }
 }
 
 @Composable
-fun GoogleSignInButton(){
+fun GoogleSignInButton(authViewModel: AuthViewModel){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -57,7 +60,7 @@ fun GoogleSignInButton(){
 
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(true)
-            .setServerClientId("754856860469-s14k0nea8ic6vff9fhamven6r3t7ua7a.apps.googleusercontent.com")
+            .setServerClientId(BuildConfig.SERVER_CLIENT_KEY)
             .setAutoSelectEnabled(true)
             .setNonce(hashedNonce)
             .build()
@@ -77,15 +80,20 @@ fun GoogleSignInButton(){
 
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
 
+
                 val googleIdToken = googleIdTokenCredential.idToken
+                authViewModel.loginWithGoogleId(googleIdToken)
+
+
 
                 Toast.makeText(context,"You are signed in",Toast.LENGTH_SHORT).show()
-            }catch (e: GetCredentialException){
+            }catch (e: GetCredentialException) {
+                Log.e("ERROR_DETAILS", "Exception: ${e.localizedMessage}, Cause: ${e.cause}")
+                Log.e("ERROR", "GetCredentialException: ${e.message}")
+                Log.e("ERROR", "Cause: ${e.cause}")
+                e.printStackTrace()
+                Toast.makeText(context, "Sign-in error: ${e.message}", Toast.LENGTH_SHORT).show()
 
-                Toast.makeText(context,"Error: ${e.message}",Toast.LENGTH_SHORT).show()
-
-            }catch (e: GoogleIdTokenParsingException){
-                Toast.makeText(context,"Error: ${e.message}",Toast.LENGTH_SHORT).show()
 
             }
         }

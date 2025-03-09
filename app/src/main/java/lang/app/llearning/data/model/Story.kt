@@ -26,7 +26,7 @@ interface  StoryApi {
     companion object {
         var storyService: StoryApi? = null
         fun getInstance(): StoryApi {
-            Log.d("StroyApi", "Base URL: $BASE_URL")
+
 
             if (storyService === null) {
                 storyService = Retrofit.Builder()
