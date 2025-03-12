@@ -1,5 +1,6 @@
 package lang.app.llearning.viewmodel
 
+import TokenManager
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,8 @@ import lang.app.llearning.data.model.AuthApi
 import lang.app.llearning.data.model.LoginRequestBody
 import lang.app.llearning.data.model.Token
 
+
+
 sealed interface AuthUiState {
     object Idle : AuthUiState
     object Loading : AuthUiState
@@ -21,8 +24,22 @@ sealed interface AuthUiState {
 class AuthViewModel: ViewModel() {
     var authUiState : AuthUiState by mutableStateOf<AuthUiState>(AuthUiState.Idle)
 
+    private val tokenManager = TokenManager
 
-    fun loginWithGoogleId(googleIdToken: String){
+    val isLoggedIn: Boolean
+        get() = tokenManager.accessToken != null
+
+    init {
+
+        if (tokenManager.accessToken != null && tokenManager.refreshToken != null) {
+
+            authUiState = AuthUiState.Success(Token(tokenManager.accessToken!!, tokenManager.refreshToken!!,tokenManager.userEmail))
+        } else {
+            authUiState = AuthUiState.Idle
+        }
+    }
+
+    fun loginWithGoogleId(googleIdToken: String,storyViewModel: StoryViewModel){
         viewModelScope.launch {
             var authApi: AuthApi? = null
             authUiState = AuthUiState.Loading
@@ -32,6 +49,15 @@ class AuthViewModel: ViewModel() {
                 val loginRequestBody = LoginRequestBody(googleIdToken);
                 val loginResponse = authApi.login(loginRequestBody);
                 authUiState = AuthUiState.Success(loginResponse)
+
+                tokenManager.accessToken = loginResponse.accessToken
+                tokenManager.refreshToken = loginResponse.refreshToken
+                tokenManager.userEmail = loginResponse.userEmail
+
+                storyViewModel.resetState()
+
+
+
 
 
             }catch (e: Exception){
@@ -54,7 +80,11 @@ class AuthViewModel: ViewModel() {
         }
 
     }
-
-
-
+    fun logout() {
+        tokenManager.clearTokens()
+    }
 }
+
+
+
+

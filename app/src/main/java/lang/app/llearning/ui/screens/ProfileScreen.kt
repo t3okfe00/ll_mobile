@@ -22,9 +22,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import lang.app.llearning.ui.components.Profile
 import lang.app.llearning.ui.theme.AppTheme
 import lang.app.llearning.viewmodel.AuthUiState
 import lang.app.llearning.viewmodel.AuthViewModel
+import lang.app.llearning.viewmodel.StoryViewModel
 
 @Composable
 fun ProfileScreen(
@@ -32,46 +34,17 @@ fun ProfileScreen(
     modifier: Modifier,
     onStoriesClick: () -> Unit,
     onBuyTokensClick: () -> Unit,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    storyViewModel: StoryViewModel
 
 ) {
     val uiState = authViewModel.authUiState
+    val isLoggedIn = authViewModel.isLoggedIn
 
     when(uiState){
-        is AuthUiState.Success ->{
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Hello,${uiState.tokenResponse.userEmail}!",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = 24.sp
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(onClick = onStoriesClick,
-                    colors =ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.primaryContainer,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ) ) {
-                    BasicText(text = "My Stories")
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onBuyTokensClick,
-                    colors =ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.primaryContainer,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )) {
-                    BasicText(text = "Buy Tokens")
-                }
-            }
-        }
-        is AuthUiState.Loading -> {
-            CircularProgressIndicator()
-        }
+        is AuthUiState.Success -> Profile(navController,uiState.tokenResponse.userEmail,onStoriesClick,onBuyTokensClick)
+
+        is AuthUiState.Loading -> CircularProgressIndicator()
         else->{
             Column(
                 modifier.fillMaxSize(),
@@ -79,7 +52,7 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("You need to sign in to continue")
-                GoogleSignInButton(authViewModel)
+                GoogleSignInButton(authViewModel,storyViewModel)
             }
         }
     }

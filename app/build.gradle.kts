@@ -57,13 +57,13 @@ android {
 }
 
 dependencies {
-    implementation("androidx.media3:media3-exoplayer:1.5.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.5.1")
-    implementation("androidx.media3:media3-ui:1.5.1")
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-alpha08")
-    implementation ("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-alpha08")
-    implementation ("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-alpha08")
-    implementation("androidx.compose.animation:animation:1.7.6")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
+    implementation ("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
+    implementation ("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
+    implementation("androidx.compose.animation:animation:1.7.8")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation (libs.converter.gson)
@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.play.services.identity.credentials)
     implementation(libs.androidx.espresso.core)
     implementation(libs.androidx.espresso.core)
+
     testImplementation(libs.junit.junit)
     testImplementation(libs.junit.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -92,6 +93,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.credentials)
     implementation (libs.androidx.credentials.play.services.auth)
+    implementation(libs.androidx.security.state)
 
 
 

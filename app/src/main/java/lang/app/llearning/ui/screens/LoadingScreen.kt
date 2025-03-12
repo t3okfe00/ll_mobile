@@ -25,13 +25,13 @@ fun LoadingScreen(modifier:Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val offsetY by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 20f, // Adjust this value to control the bounce height
+        targetValue = 20f,
         animationSpec = infiniteRepeatable(
             animation = tween(
-                durationMillis = 1000, // Duration for one cycle
+                durationMillis = 1000,
                 easing = LinearEasing
             ),
-            repeatMode = RepeatMode.Reverse // Reverses the animation for the up and down effect
+            repeatMode = RepeatMode.Reverse
         ), label = ""
     )
     Box(

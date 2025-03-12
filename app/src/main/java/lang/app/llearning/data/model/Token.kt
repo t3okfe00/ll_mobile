@@ -12,7 +12,7 @@ val URL = BuildConfig.BASE_URL
 data class Token(
     val accessToken: String,
     val refreshToken: String,
-    val userEmail: String
+    val userEmail: String?
 )
 
 data class LoginRequestBody(val token: String)

@@ -1,4 +1,4 @@
-package lang.app.llearning.ui.shared
+package lang.app.llearning.ui.appbars
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon

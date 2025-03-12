@@ -1,4 +1,5 @@
 package lang.app.llearning.ui
+import TokenManager
 import lang.app.llearning.viewmodel.StoryViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,7 +24,7 @@ import lang.app.llearning.ui.screens.generateStory.GenerateStoryScreen
 import lang.app.llearning.ui.screens.HomeScreen
 import lang.app.llearning.ui.screens.ProfileScreen
 import lang.app.llearning.ui.screens.TopBar
-import lang.app.llearning.ui.shared.BottomNavigationBar
+import lang.app.llearning.ui.appbars.BottomNavigationBar
 import lang.app.llearning.ui.theme.AppTheme
 import lang.app.llearning.viewmodel.AuthViewModel
 
@@ -35,10 +36,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TokenManager.initialize(this)
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                MainScreen(modifier = Modifier,storyViewModel = storyViewModel,authViewModel = authViewModel)
+                AppNavigation(modifier = Modifier,storyViewModel = storyViewModel,authViewModel = authViewModel)
             }
         }
     }
@@ -46,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier:Modifier = Modifier,
+fun AppNavigation(modifier:Modifier = Modifier,
                windowSizeClass : WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
                storyViewModel: StoryViewModel,
                authViewModel: AuthViewModel
@@ -66,10 +68,10 @@ fun MainScreen(modifier:Modifier = Modifier,
             modifier = modifier.padding(innerPadding)
         ) {
             composable(route = "home") {
-                HomeScreen(navController, modifier,authViewModel)
+                HomeScreen(navController, modifier,authViewModel,storyViewModel)
             }
             composable(route = "profile") {
-                ProfileScreen(navController, modifier,{},{},authViewModel)
+                ProfileScreen(navController, modifier,{},{},authViewModel,storyViewModel)
             }
             composable(route = "story"){
                 GenerateStoryScreen(modifier, storyViewModel = storyViewModel)

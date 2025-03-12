@@ -23,12 +23,13 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 import lang.app.llearning.BuildConfig
 import lang.app.llearning.viewmodel.AuthViewModel
+import lang.app.llearning.viewmodel.StoryViewModel
 
 import java.security.MessageDigest
 import java.util.UUID
 
 @Composable
-fun HomeScreen(navController: NavController, modifier: Modifier = Modifier,authViewModel: AuthViewModel) {
+fun HomeScreen(navController: NavController, modifier: Modifier = Modifier,authViewModel: AuthViewModel,storyViewModel: StoryViewModel) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -39,12 +40,12 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier,authV
             modifier = modifier,
             color = MaterialTheme.colorScheme.primary
         )
-        GoogleSignInButton(authViewModel = authViewModel)
+        GoogleSignInButton(authViewModel = authViewModel,storyViewModel= storyViewModel)
     }
 }
 
 @Composable
-fun GoogleSignInButton(authViewModel: AuthViewModel){
+fun GoogleSignInButton(authViewModel: AuthViewModel,storyViewModel: StoryViewModel){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -82,15 +83,13 @@ fun GoogleSignInButton(authViewModel: AuthViewModel){
 
 
                 val googleIdToken = googleIdTokenCredential.idToken
-                authViewModel.loginWithGoogleId(googleIdToken)
+                authViewModel.loginWithGoogleId(googleIdToken,storyViewModel)
 
 
 
                 Toast.makeText(context,"You are signed in",Toast.LENGTH_SHORT).show()
             }catch (e: GetCredentialException) {
-                Log.e("ERROR_DETAILS", "Exception: ${e.localizedMessage}, Cause: ${e.cause}")
-                Log.e("ERROR", "GetCredentialException: ${e.message}")
-                Log.e("ERROR", "Cause: ${e.cause}")
+
                 e.printStackTrace()
                 Toast.makeText(context, "Sign-in error: ${e.message}", Toast.LENGTH_SHORT).show()
 

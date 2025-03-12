@@ -1,5 +1,6 @@
 package lang.app.llearning.viewmodel
 
+import TokenManager
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,11 +22,10 @@ sealed interface StoryUiState {
 }
 
 
-class StoryViewModel(): ViewModel(){
+class StoryViewModel: ViewModel(){
     var storyUiState: StoryUiState by mutableStateOf<StoryUiState>(StoryUiState.Initial)
     var selectedLanguage by mutableStateOf("Turkish")
     var userPrompt by mutableStateOf("")
-
 
 
     fun updateLanguage(language: String) {
@@ -38,12 +38,17 @@ class StoryViewModel(): ViewModel(){
 
     }
 
+    fun resetState(){
+        storyUiState = StoryUiState.Initial
+    }
+
     fun createStory(prompt:String,translateTo:String){
         viewModelScope.launch {
+
             var storiesApi: StoryApi? = null
             storyUiState = StoryUiState.Loading
             try {
-                storiesApi = StoryApi.getInstance()
+                storiesApi = StoryApi.getInstance();
                 val requestBody = StoryRequest(prompt,translateTo)
                 val generatedStory = storiesApi.createStory(requestBody)
 
@@ -52,11 +57,11 @@ class StoryViewModel(): ViewModel(){
                 val errorMessage = when (e) {
                     is java.net.UnknownHostException -> "No Internet Connection"
                     is retrofit2.HttpException -> {
-                        // Extract error body for more detailed error information
+
                         val errorBody = e.response()?.errorBody()?.string()
                         Log.d("errorBody",errorBody.toString())
                         try {
-                            // If the error response is in JSON format, you might want to parse it
+
                             val errorJson = errorBody?.let { JSONObject(it) }
                             errorJson?.optString("message")
                                 ?: errorJson?.optString("error")

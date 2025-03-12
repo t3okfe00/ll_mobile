@@ -1,7 +1,10 @@
 package lang.app.llearning.data.model
 
-import android.util.Log
+import AuthInterceptor
+import TokenManager
+
 import lang.app.llearning.BuildConfig
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -22,15 +25,20 @@ interface  StoryApi {
     @POST("story")
     suspend fun createStory(@Body requestBody: StoryRequest) : Story
 
-
     companion object {
         var storyService: StoryApi? = null
         fun getInstance(): StoryApi {
 
+            val tokenManager = TokenManager
 
             if (storyService === null) {
+                val client = OkHttpClient.Builder()
+                    .addInterceptor(AuthInterceptor(tokenManager))
+                    .build()
+
                 storyService = Retrofit.Builder()
                     .baseUrl(BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build().create(StoryApi::class.java)
             }

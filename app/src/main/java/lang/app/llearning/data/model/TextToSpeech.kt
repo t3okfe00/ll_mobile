@@ -1,7 +1,10 @@
 package lang.app.llearning.data.model
 
+import AuthInterceptor
+import TokenManager
 import android.util.Log
 import lang.app.llearning.BuildConfig
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -24,13 +27,19 @@ interface TextToSpeechApi {
 
     companion object {
         var ttsService: TextToSpeechApi? = null
+         val tokenManager= TokenManager
 
         fun getInstance(): TextToSpeechApi {
             if (ttsService == null) {
-                Log.d("TextToSpeechApi", "Base URL: $BASE_URL_TTS")
+
+
+                val client = OkHttpClient.Builder()
+                    .addInterceptor(AuthInterceptor(tokenManager))
+                    .build()
 
                 ttsService = Retrofit.Builder()
                     .baseUrl(BASE_URL_TTS)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build().create(TextToSpeechApi::class.java)
             }
