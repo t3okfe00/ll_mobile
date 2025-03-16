@@ -1,4 +1,4 @@
-package lang.app.llearning.data.model
+package lang.app.llearning.model
 
 import AuthInterceptor
 import TokenManager
@@ -11,13 +11,13 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 const val BASE_URL = BuildConfig.BASE_URL
-data class Success(val story: Story)
 
 data class Story(
     var englishStory: String,
-    var translatedStory: String,
-    var tokenUsed: Int
+    var translatedStory: String
 )
+
+data class StoryRequest(val prompt: String,val translateTo: String)
 
 
 interface  StoryApi {
@@ -26,7 +26,7 @@ interface  StoryApi {
     suspend fun createStory(@Body requestBody: StoryRequest) : Story
 
     companion object {
-        var storyService: StoryApi? = null
+        private var storyService: StoryApi? = null
         fun getInstance(): StoryApi {
 
             val tokenManager = TokenManager

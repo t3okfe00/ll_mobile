@@ -1,4 +1,4 @@
-package lang.app.llearning.ui.screens.generateStory
+package lang.app.llearning.ui.screens.generateStory.components
 
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState

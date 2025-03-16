@@ -10,9 +10,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.launch
-import lang.app.llearning.data.model.TextToSpeechApi
-import lang.app.llearning.data.model.TextToSpeechRequest
-import lang.app.llearning.data.model.TextToSpeechResponse
+import lang.app.llearning.model.TextToSpeechApi
+import lang.app.llearning.model.TextToSpeechRequest
+import lang.app.llearning.model.TextToSpeechResponse
+import org.json.JSONObject
 
 sealed interface TextToSpeechUiState {
     data class Success(val audioContent: String) : TextToSpeechUiState
@@ -54,7 +55,27 @@ class TextToSpeechViewModel : ViewModel() {
 
                 ttsUiState = TextToSpeechUiState.Success(response.url)
             } catch (e: Exception) {
-                ttsUiState = TextToSpeechUiState.Error("Text-To-Speech functionality is is temporarily not available"?: "An error occurred")
+                val errorMessage = when (e) {
+                    is java.net.UnknownHostException -> "No Internet Connection"
+                    is retrofit2.HttpException -> {
+
+                        val errorBody = e.response()?.errorBody()?.string()
+                        Log.d("errorBody", errorBody.toString())
+                        try {
+
+                            val errorJson = errorBody?.let { JSONObject(it) }
+                            errorJson?.optString("message")
+                                ?: errorJson?.optString("error")
+                                ?: "API error: ${e.code()}"
+                        } catch (jsonException: Exception) {
+                            // Fallback to the original error message
+                            "API error: ${e.message}"
+                        }
+                    }
+
+                    else -> "An unexpected error occurred,Please try again later"
+                }
+                ttsUiState = TextToSpeechUiState.Error(errorMessage ?: "An error occurred")
 
             }
         }

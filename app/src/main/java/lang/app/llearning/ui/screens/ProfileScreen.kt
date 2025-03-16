@@ -39,7 +39,7 @@ fun ProfileScreen(
 
 ) {
     val uiState = authViewModel.authUiState
-    val isLoggedIn = authViewModel.isLoggedIn
+
 
     when(uiState){
         is AuthUiState.Success -> Profile(navController,uiState.tokenResponse.userEmail,onStoriesClick,onBuyTokensClick)

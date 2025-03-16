@@ -1,16 +1,15 @@
 package lang.app.llearning.viewmodel
 
 import TokenManager
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import lang.app.llearning.data.model.AuthApi
-import lang.app.llearning.data.model.LoginRequestBody
-import lang.app.llearning.data.model.Token
+import lang.app.llearning.model.AuthApi
+import lang.app.llearning.model.LoginRequestBody
+import lang.app.llearning.model.Token
 
 
 
@@ -26,13 +25,10 @@ class AuthViewModel: ViewModel() {
 
     private val tokenManager = TokenManager
 
-    val isLoggedIn: Boolean
-        get() = tokenManager.accessToken != null
 
     init {
 
         if (tokenManager.accessToken != null && tokenManager.refreshToken != null) {
-
             authUiState = AuthUiState.Success(Token(tokenManager.accessToken!!, tokenManager.refreshToken!!,tokenManager.userEmail))
         } else {
             authUiState = AuthUiState.Idle
@@ -56,25 +52,15 @@ class AuthViewModel: ViewModel() {
 
                 storyViewModel.resetState()
 
-
-
-
-
             }catch (e: Exception){
                 val errorMessage = when (e) {
                     is java.net.UnknownHostException -> "No Internet Connection"
                     is retrofit2.HttpException -> {
-
-                        val errorBody = e.response()?.errorBody()?.string()
-
                         "API error: ${e.message}"
                     }
                     else -> "An unexpected error occurred, please try again later"
                 }
-
-
                 authUiState = AuthUiState.Error(errorMessage)
-
             }
 
         }

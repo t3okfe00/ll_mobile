@@ -23,7 +23,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import lang.app.llearning.ui.screens.generateStory.GenerateStoryScreen
 import lang.app.llearning.ui.screens.HomeScreen
 import lang.app.llearning.ui.screens.ProfileScreen
-import lang.app.llearning.ui.screens.TopBar
+import lang.app.llearning.ui.appbars.TopBar
 import lang.app.llearning.ui.appbars.BottomNavigationBar
 import lang.app.llearning.ui.theme.AppTheme
 import lang.app.llearning.viewmodel.AuthViewModel

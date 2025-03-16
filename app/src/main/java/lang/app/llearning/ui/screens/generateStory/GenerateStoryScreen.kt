@@ -13,7 +13,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lang.app.llearning.R
-
+import lang.app.llearning.ui.screens.generateStory.components.LanguageDropdown
+import lang.app.llearning.ui.screens.generateStory.components.PromptInputSection
+import lang.app.llearning.ui.screens.generateStory.components.StoryRenderer
 
 
 @Composable

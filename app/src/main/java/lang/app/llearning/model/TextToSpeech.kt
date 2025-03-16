@@ -1,8 +1,7 @@
-package lang.app.llearning.data.model
+package lang.app.llearning.model
 
 import AuthInterceptor
 import TokenManager
-import android.util.Log
 import lang.app.llearning.BuildConfig
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -31,7 +30,6 @@ interface TextToSpeechApi {
 
         fun getInstance(): TextToSpeechApi {
             if (ttsService == null) {
-
 
                 val client = OkHttpClient.Builder()
                     .addInterceptor(AuthInterceptor(tokenManager))

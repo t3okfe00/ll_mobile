@@ -1,17 +1,15 @@
 package lang.app.llearning.viewmodel
 
-import TokenManager
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import lang.app.llearning.data.model.Story
-import lang.app.llearning.data.model.StoryApi
-import lang.app.llearning.data.model.StoryRequest
+import lang.app.llearning.model.Story
+import lang.app.llearning.model.StoryApi
+import lang.app.llearning.model.StoryRequest
 import org.json.JSONObject
 
 sealed interface StoryUiState {
@@ -51,6 +49,7 @@ class StoryViewModel: ViewModel(){
                 storiesApi = StoryApi.getInstance();
                 val requestBody = StoryRequest(prompt,translateTo)
                 val generatedStory = storiesApi.createStory(requestBody)
+                Log.d("generatedStory",generatedStory.toString())
 
                 storyUiState = StoryUiState.Success(generatedStory)
             }catch (e: Exception) {

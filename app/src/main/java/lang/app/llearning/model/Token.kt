@@ -1,12 +1,9 @@
-package lang.app.llearning.data.model
+package lang.app.llearning.model
 
-import lang.app.llearning.BuildConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
-
-val URL = BuildConfig.BASE_URL
 
 
 data class Token(

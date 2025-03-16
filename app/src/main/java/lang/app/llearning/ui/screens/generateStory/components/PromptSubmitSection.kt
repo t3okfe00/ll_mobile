@@ -1,4 +1,4 @@
-package lang.app.llearning.ui.screens.generateStory
+package lang.app.llearning.ui.screens.generateStory.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
